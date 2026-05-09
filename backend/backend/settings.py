@@ -115,7 +115,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', '1433'),
         'OPTIONS': {
-            'driver': os.getenv('DB_DRIVER', 'ODBC Driver 18 for SQL Server'),  # Updated default to 18
+            'driver': os.getenv('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),  # Updated default to 18
             'extra_params': 'Encrypt=yes;TrustServerCertificate=yes;MARS_Connection=yes;',
         },
     }
@@ -223,3 +223,39 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 
 CELERY_TIMEZONE = "Africa/Cairo"
+
+# ==============================================================================
+# LOGGING CONFIGURATION (CRITICAL FOR RAILWAY DEBUGGING)
+# ==============================================================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
