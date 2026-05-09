@@ -227,33 +227,19 @@ CELERY_TIMEZONE = "Africa/Cairo"
 # ==============================================================================
 # 🚀 PATCH FOR MSSQL-DJANGO (SQL Server v17 Compatibility)
 # ==============================================================================
+
 try:
     import mssql.base
-    from django.utils.functional import cached_property
 
-    # حفظ الـ function الأصلية
-    _original_sql_server_version = (
-        mssql.base.DatabaseWrapper.sql_server_version.func
-    )
-
-    @cached_property
     def patched_sql_server_version(self):
-        ver = _original_sql_server_version(self)
+        return 16
 
-        # لو النسخة أعلى من المدعوم
-        # اعتبرها SQL Server 2022
-        if ver > 16:
-            return 16
-
-        return ver
-
-    mssql.base.DatabaseWrapper.sql_server_version = (
+    mssql.base.DatabaseWrapper.sql_server_version = property(
         patched_sql_server_version
     )
 
 except Exception:
     pass
-
 
 # ==============================================================================
 # LOGGING CONFIGURATION (CRITICAL FOR RAILWAY DEBUGGING)
