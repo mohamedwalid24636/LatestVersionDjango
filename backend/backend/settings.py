@@ -115,7 +115,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', '1433'),
         'OPTIONS': {
-            'driver': os.getenv('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),
+            'driver': os.getenv('DB_DRIVER', 'ODBC Driver 18 for SQL Server'),
             'extra_params': 'Encrypt=yes;TrustServerCertificate=yes;MARS_Connection=yes;',
         },
     }
@@ -223,6 +223,25 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 
 CELERY_TIMEZONE = "Africa/Cairo"
+
+# ==============================================================================
+# 🚀 PATCH FOR MSSQL-DJANGO (SQL Server v17 Compatibility)
+# ==============================================================================
+# The mssql-django library currently doesn't officially recognize SQL Server v17 
+# (which your database host is running). This monkey-patch forces it to treat 
+# the database as v16 (SQL Server 2022), which is fully compatible.
+try:
+    import mssql.base
+    from django.utils.functional import cached_property
+    
+    @cached_property
+    def patched_sql_server_version(self):
+        return 16  # Force SQL Server 2022 compatibility mode
+        
+    mssql.base.DatabaseWrapper.sql_server_version = patched_sql_server_version
+except ImportError:
+    pass
+
 
 # ==============================================================================
 # LOGGING CONFIGURATION (CRITICAL FOR RAILWAY DEBUGGING)
