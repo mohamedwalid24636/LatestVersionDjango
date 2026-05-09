@@ -1,11 +1,14 @@
 FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# =========================
+# Environment Variables
+# =========================
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies and Microsoft SQL Server ODBC Driver 18
-# Updated for modern Debian (Bookworm 12) replacing deprecated apt-key
+# =========================
+# System Dependencies
+# =========================
 RUN apt-get update && apt-get install -y \
     curl \
     apt-transport-https \
@@ -20,29 +23,46 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
+# =========================
+# Work Directory
+# =========================
 WORKDIR /app
 
-# Install Python dependencies
+# =========================
+# Install Python deps
+# =========================
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy project files
+# =========================
+# Copy Project
+# =========================
 COPY . /app/
 
-# Expose port (default 8000, can be overridden by PORT env var)
-EXPOSE 8000
-
-# Change directory to where manage.py is located
+# =========================
+# Move into Django project
+# =========================
 WORKDIR /app/backend
 
-# Create staticfiles directory for WhiteNoise
+# =========================
+# Static files folder
+# =========================
 RUN mkdir -p staticfiles
 
-# Collect static files safely without connecting to live SQL database
-# We pass a dummy sqlite3 config and dummy secret key so Django builds static files offline securely
-RUN DB_ENGINE="django.db.backends.sqlite3" DB_NAME=":memory:" SECRET_KEY="dummy-build-key" python manage.py collectstatic --noinput
+# =========================
+# Collect static safely (no DB / Redis dependency)
+# =========================
+RUN DB_ENGINE="django.db.backends.sqlite3" \
+    DB_NAME=":memory:" \
+    SECRET_KEY="dummy-build-key" \
+    python manage.py collectstatic --noinput
 
-# Command to run gunicorn (Railway handles the PORT environment variable)
-# Explicitly omitting any database migrations commands to protect live SQL Server schema
-CMD gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+# =========================
+# IMPORTANT: Use fixed port for Railway Docker
+# =========================
+EXPOSE 8000
+
+# =========================
+# Start Gunicorn (FIXED)
+# =========================
+CMD ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000"]
