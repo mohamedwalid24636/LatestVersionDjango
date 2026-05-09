@@ -227,19 +227,31 @@ CELERY_TIMEZONE = "Africa/Cairo"
 # ==============================================================================
 # 🚀 PATCH FOR MSSQL-DJANGO (SQL Server v17 Compatibility)
 # ==============================================================================
-# The mssql-django library currently doesn't officially recognize SQL Server v17 
-# (which your database host is running). This monkey-patch forces it to treat 
-# the database as v16 (SQL Server 2022), which is fully compatible.
 try:
     import mssql.base
     from django.utils.functional import cached_property
-    
+
+    # حفظ الـ function الأصلية
+    _original_sql_server_version = (
+        mssql.base.DatabaseWrapper.sql_server_version.func
+    )
+
     @cached_property
     def patched_sql_server_version(self):
-        return 16  # Force SQL Server 2022 compatibility mode
-        
-    mssql.base.DatabaseWrapper.sql_server_version = patched_sql_server_version
-except ImportError:
+        ver = _original_sql_server_version(self)
+
+        # لو النسخة أعلى من المدعوم
+        # اعتبرها SQL Server 2022
+        if ver > 16:
+            return 16
+
+        return ver
+
+    mssql.base.DatabaseWrapper.sql_server_version = (
+        patched_sql_server_version
+    )
+
+except Exception:
     pass
 
 
