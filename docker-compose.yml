@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    command: gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT:-8000} --reload
+    volumes:
+      - .:/app
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    environment:
+      - DEBUG=True
+      - ALLOWED_HOSTS=*
+      - REDIS_URL=redis://redis:6379/0
+      # These placeholders emulate your production variables locally
+      - SECRET_KEY=YOUR_DEVELOPMENT_SECRET_KEY
+      - DB_ENGINE=mssql
+      - DB_NAME=YOUR_DB_NAME
+      - DB_USER=YOUR_DB_USER
+      - DB_PASSWORD=YOUR_DB_PASSWORD
+      - DB_HOST=YOUR_DB_HOST
+      - DB_PORT=1433
+      - EMAIL_HOST_USER=YOUR_EMAIL
+      - EMAIL_HOST_PASSWORD=YOUR_APP_PASSWORD
+      - TWILIO_ACCOUNT_SID=YOUR_SID
+      - TWILIO_AUTH_TOKEN=YOUR_TOKEN
+      - TWILIO_WHATSAPP_NUMBER=YOUR_NUMBER
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    command: celery -A backend worker -l info
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=True
+      - REDIS_URL=redis://redis:6379/0
+      # Must pass DB and other connections to the worker so tasks can use them
+      - DB_NAME=YOUR_DB_NAME
+      - DB_USER=YOUR_DB_USER
+      - DB_PASSWORD=YOUR_DB_PASSWORD
+      - DB_HOST=YOUR_DB_HOST
+      - DB_PORT=1433
+      - TWILIO_ACCOUNT_SID=YOUR_SID
+      - TWILIO_AUTH_TOKEN=YOUR_TOKEN
+      - TWILIO_WHATSAPP_NUMBER=YOUR_NUMBER
+    depends_on:
+      - redis
+      - web

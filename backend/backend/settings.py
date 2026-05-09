@@ -36,6 +36,10 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 # Allow accessing from Railway domain or locally
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
+# CORS Configuration for external .NET clients
+CORS_ALLOW_ALL_ORIGINS = True  # Allows requests from any origin (safe for public API, or you can restrict to specific .NET domain)
+CORS_ALLOW_CREDENTIALS = True
+
 
 # Application definition
 
@@ -46,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',  # Required for .NET external client
     'rest_framework',
     'api.apps.ApiConfig',
     'rest_framework_simplejwt.token_blacklist',
@@ -56,6 +61,8 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'api.User'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # MUST be before CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -65,8 +72,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'backend.urls'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'no-reply@example.com'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Neurea Support <neureasupport@gmail.com>')
 
 TEMPLATES = [
     {
@@ -102,10 +108,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', 'mssql'),
-        'NAME': os.getenv('DB_NAME', 'db51411'),
-        'USER': os.getenv('DB_USER', 'db51411'),
+        'NAME': os.getenv('DB_NAME', ''),
+        'USER': os.getenv('DB_USER', ''),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'db51411.public.databaseasp.net'),
+        'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', '1433'),
         'OPTIONS': {
             'driver': os.getenv('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),  # أو 18 لو عندك
@@ -153,6 +159,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -182,7 +189,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
-STATIC_URL = 'static/'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
