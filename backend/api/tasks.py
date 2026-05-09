@@ -9,37 +9,50 @@ logger = logging.getLogger(__name__)
 
 
 # =========================
-# 📧 EMAIL TASK
+# 📧 EMAIL TASK (FIXED)
 # =========================
 @shared_task(
     bind=True,
     autoretry_for=(Exception,),
     retry_backoff=True,
-    max_retries=3
+    retry_kwargs={'max_retries': 3}
 )
 def send_async_email(self, subject, message, recipient_list):
     try:
         print("📧 EMAIL TASK STARTED:", recipient_list)
 
+        # ⚠️ مهم: استخدم EMAIL_HOST_USER بدل DEFAULT_FROM_EMAIL
+        sender = settings.EMAIL_HOST_USER
+
+        if not sender:
+            raise ValueError("EMAIL_HOST_USER is not set")
+
+        if not recipient_list:
+            raise ValueError("No recipients provided")
+
         result = send_mail(
             subject,
             message,
-            settings.DEFAULT_FROM_EMAIL,
+            sender,
             recipient_list,
             fail_silently=False,
         )
 
-        print("📧 EMAIL RESULT:", result)
+        print("📧 EMAIL SENT RESULT:", result)
+
+        if result == 0:
+            raise Exception("Email was not sent (send_mail returned 0)")
+
         return result
 
     except Exception as e:
-        print("❌ EMAIL TASK FAILED:", str(e))
+        print("❌ EMAIL TASK FAILED:", repr(e))
         logger.exception("Email task failed")
         raise self.retry(exc=e, countdown=10)
 
 
 # =========================
-# 🚨 EMERGENCY WHATSAPP TASK
+# 🚨 EMERGENCY WHATSAPP TASK (FIXED)
 # =========================
 @shared_task(bind=True, max_retries=5)
 def send_emergency_whatsapp_task(self, user_id, crisis_note):
@@ -51,7 +64,7 @@ def send_emergency_whatsapp_task(self, user_id, crisis_note):
     try:
         user = User.objects.get(id=user_id)
 
-        # Create alert in system
+        # create alert
         Alert.objects.create(
             user=user,
             message=f"🚨 WhatsApp Alert Triggered: {crisis_note}",
@@ -79,16 +92,19 @@ def send_emergency_whatsapp_task(self, user_id, crisis_note):
 
             client.messages.create(
                 from_=f"whatsapp:{settings.TWILIO_WHATSAPP_NUMBER}",
+                to=f"whatsapp:{clean_phone}",
                 body=(
                     f"🚨 *NEUREA EMERGENCY ALERT* 🚨\n\n"
                     f"Patient: *{user.get_full_name() or user.username}*\n"
                     f"Status: High Risk Detected\n"
                     f"AI Insight: {crisis_note}\n\n"
                     f"Please contact them immediately."
-                ),
-                to=f"whatsapp:{clean_phone}"
+                )
             )
 
+        print("📱 WhatsApp alerts sent successfully")
+
     except Exception as e:
-        print("❌ WHATSAPP TASK FAILED:", str(e))
+        print("❌ WHATSAPP TASK FAILED:", repr(e))
+        logger.exception("WhatsApp task failed")
         raise self.retry(exc=e, countdown=20)
