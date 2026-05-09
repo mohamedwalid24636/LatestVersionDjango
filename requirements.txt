@@ -41,7 +41,7 @@ whitenoise==6.12.0
 
 filelock==3.25.2
 frozenlist==1.8.0
-fsspec==2025.8.0
+fsspec==2024.10.0
 
 gradio_client==2.4.1
 hf-xet==1.4.3
@@ -56,6 +56,7 @@ pillow==12.1.1
 prompt_toolkit==3.0.52
 propcache==0.4.1
 
+# ⚠️ optional (لو مش محتاج Postgres احذفه)
 psycopg2-binary==2.9.11
 
 Pygments==2.20.0
@@ -71,7 +72,7 @@ twilio==9.10.4
 typer==0.24.1
 typing_extensions==4.15.0
 
-tzdata==2025.7
+tzdata==2024.12
 tzlocal==5.3.1
 wcwidth==0.7.0
 yarl==1.23.0
