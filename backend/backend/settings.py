@@ -103,6 +103,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # }
 
 
+
 #لازم اسم ال ذاتابيز يكون متعملها نشاء في sql server اصلا
 # pip install mssql-django
 DATABASES = {
@@ -114,7 +115,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', '1433'),
         'OPTIONS': {
-            'driver': os.getenv('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),  # أو 18 لو عندك
+            'driver': os.getenv('DB_DRIVER', 'ODBC Driver 18 for SQL Server'),  # Updated default to 18
             'extra_params': 'Encrypt=yes;TrustServerCertificate=yes;MARS_Connection=yes;',
         },
     }
