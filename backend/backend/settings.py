@@ -115,7 +115,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', '1433'),
         'OPTIONS': {
-            'driver': os.getenv('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),  # Updated default to 18
+            'driver': os.getenv('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),
             'extra_params': 'Encrypt=yes;TrustServerCertificate=yes;MARS_Connection=yes;',
         },
     }
