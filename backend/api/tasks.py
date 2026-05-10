@@ -1,15 +1,16 @@
 from celery import shared_task
+from django.core.mail import send_mail
 from django.conf import settings
 import logging
-import requests
 
 from twilio.rest import Client as TwilioClient
 
 logger = logging.getLogger(__name__)
 
-# =========================
-# 📧 EMAIL TASK (RESEND FIXED + PRODUCTION SAFE)
-# =========================
+# ==============================================================================
+# 📧 EMAIL TASK (GMAIL SMTP + CELERY)
+# ==============================================================================
+
 @shared_task(
     bind=True,
     autoretry_for=(Exception,),
@@ -18,53 +19,23 @@ logger = logging.getLogger(__name__)
 )
 def send_async_email(self, subject, message, recipient_list):
     try:
-        print("📧 EMAIL TASK STARTED (Resend):", recipient_list)
+        print("📧 EMAIL TASK STARTED (Gmail SMTP):", recipient_list)
 
-        api_key = getattr(settings, 'RESEND_API_KEY', None)
-        sender = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
-
-        if not api_key:
-            raise ValueError("❌ RESEND_API_KEY is missing")
-
-        if not sender:
-            raise ValueError("❌ DEFAULT_FROM_EMAIL is missing")
-
+        # Validation
         if not recipient_list:
             raise ValueError("❌ recipient_list is empty")
 
-        # Resend requires SINGLE email string (not list)
-        to_email = recipient_list[0]
-
-        payload = {
-            "from": sender,
-            "to": to_email,
-            "subject": subject,
-            "text": message
-        }
-
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-
-        print("🚀 Sending request to Resend...")
-
-        response = requests.post(
-            "https://api.resend.com/emails",
-            json=payload,
-            headers=headers,
-            timeout=10
+        # Send email using Django SMTP
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=recipient_list,
+            fail_silently=False,
         )
 
-        # مهم جدًا: اطبع التفاصيل قبل أي exception
-        print("📡 STATUS CODE:", response.status_code)
-        print("📡 RESPONSE:", response.text)
-
-        if not response.ok:
-            raise Exception(f"Resend Error: {response.text}")
-
-        print("✅ EMAIL SENT SUCCESSFULLY")
-        return response.json()
+        print("✅ EMAIL SENT SUCCESSFULLY (SMTP)")
+        return "success"
 
     except Exception as e:
         print("❌ EMAIL TASK FAILED:", repr(e))
@@ -72,9 +43,10 @@ def send_async_email(self, subject, message, recipient_list):
         raise self.retry(exc=e, countdown=10)
 
 
-# =========================
-# 🚨 EMERGENCY WHATSAPP TASK (CLEAN + SAFE)
-# =========================
+# ==============================================================================
+# 🚨 EMERGENCY WHATSAPP TASK (UNCHANGED - TWILIO)
+# ==============================================================================
+
 @shared_task(bind=True, max_retries=5)
 def send_emergency_whatsapp_task(self, user_id, crisis_note):
     from django.contrib.auth import get_user_model
