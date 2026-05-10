@@ -22,7 +22,7 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 # ==============================
-# Optional production config
+# Production-safe defaults
 # ==============================
 app.conf.update(
     timezone='Africa/Cairo',
@@ -30,7 +30,7 @@ app.conf.update(
 )
 
 # ==============================
-# Debug task (for testing only)
+# Debug task (safe test)
 # ==============================
 @app.task(bind=True)
 def debug_task(self):

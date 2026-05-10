@@ -1,15 +1,14 @@
 from celery import shared_task
-from django.core.mail import send_mail
 from django.conf import settings
 import logging
+import requests
 
 from twilio.rest import Client as TwilioClient
 
 logger = logging.getLogger(__name__)
 
-
 # =========================
-# 📧 EMAIL TASK (FIXED)
+# 📧 EMAIL TASK (RESEND FIXED + PRODUCTION SAFE)
 # =========================
 @shared_task(
     bind=True,
@@ -18,26 +17,27 @@ logger = logging.getLogger(__name__)
     retry_kwargs={'max_retries': 3}
 )
 def send_async_email(self, subject, message, recipient_list):
-    import requests
     try:
-        print("📧 EMAIL TASK STARTED (via Resend):", recipient_list)
+        print("📧 EMAIL TASK STARTED (Resend):", recipient_list)
 
-        # Use DEFAULT_FROM_EMAIL or EMAIL_HOST_USER as fallback
-        sender = getattr(settings, 'DEFAULT_FROM_EMAIL', getattr(settings, 'EMAIL_HOST_USER', ''))
-        api_key = getattr(settings, 'RESEND_API_KEY', '')
+        api_key = getattr(settings, 'RESEND_API_KEY', None)
+        sender = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
 
         if not api_key:
-            raise ValueError("RESEND_API_KEY is not set in environment or settings")
-            
+            raise ValueError("❌ RESEND_API_KEY is missing")
+
         if not sender:
-            raise ValueError("Sender email is not set in settings")
+            raise ValueError("❌ DEFAULT_FROM_EMAIL is missing")
 
         if not recipient_list:
-            raise ValueError("No recipients provided")
+            raise ValueError("❌ recipient_list is empty")
+
+        # Resend requires SINGLE email string (not list)
+        to_email = recipient_list[0]
 
         payload = {
             "from": sender,
-            "to": recipient_list,
+            "to": to_email,
             "subject": subject,
             "text": message
         }
@@ -47,17 +47,23 @@ def send_async_email(self, subject, message, recipient_list):
             "Content-Type": "application/json"
         }
 
-        print("🚀 Sending via Resend API...")
-        response = requests.post("https://api.resend.com/emails", json=payload, headers=headers, timeout=10)
-        
-        # ⚠️ اطبع الخطأ التفصيلي من Resend قبل عمل raise لتتمكن من رؤيته في سجلات Railway
-        if not response.ok:
-            print("❌ RESEND API ERROR DETAILS:", response.text)
-            
-        # Raise an exception if HTTP status code is 4xx or 5xx
-        response.raise_for_status()
+        print("🚀 Sending request to Resend...")
 
-        print("✅ EMAIL SENT RESULT:", response.json())
+        response = requests.post(
+            "https://api.resend.com/emails",
+            json=payload,
+            headers=headers,
+            timeout=10
+        )
+
+        # مهم جدًا: اطبع التفاصيل قبل أي exception
+        print("📡 STATUS CODE:", response.status_code)
+        print("📡 RESPONSE:", response.text)
+
+        if not response.ok:
+            raise Exception(f"Resend Error: {response.text}")
+
+        print("✅ EMAIL SENT SUCCESSFULLY")
         return response.json()
 
     except Exception as e:
@@ -67,7 +73,7 @@ def send_async_email(self, subject, message, recipient_list):
 
 
 # =========================
-# 🚨 EMERGENCY WHATSAPP TASK (FIXED)
+# 🚨 EMERGENCY WHATSAPP TASK (CLEAN + SAFE)
 # =========================
 @shared_task(bind=True, max_retries=5)
 def send_emergency_whatsapp_task(self, user_id, crisis_note):
@@ -79,7 +85,7 @@ def send_emergency_whatsapp_task(self, user_id, crisis_note):
     try:
         user = User.objects.get(id=user_id)
 
-        # create alert
+        # Create alert
         Alert.objects.create(
             user=user,
             message=f"🚨 WhatsApp Alert Triggered: {crisis_note}",
@@ -98,22 +104,22 @@ def send_emergency_whatsapp_task(self, user_id, crisis_note):
         )
 
         for contact in contacts:
-            clean_phone = str(contact.phone).replace(" ", "").strip()
+            phone = str(contact.phone).strip().replace(" ", "")
 
-            if not clean_phone.startswith('+'):
-                clean_phone = '+' + clean_phone
+            if not phone.startswith("+"):
+                phone = "+" + phone
 
-            print("📱 Sending WhatsApp to:", clean_phone)
+            print("📱 Sending WhatsApp to:", phone)
 
             client.messages.create(
                 from_=f"whatsapp:{settings.TWILIO_WHATSAPP_NUMBER}",
-                to=f"whatsapp:{clean_phone}",
+                to=f"whatsapp:{phone}",
                 body=(
-                    f"🚨 *NEUREA EMERGENCY ALERT* 🚨\n\n"
+                    "🚨 *NEUREA EMERGENCY ALERT* 🚨\n\n"
                     f"Patient: *{user.get_full_name() or user.username}*\n"
-                    f"Status: High Risk Detected\n"
+                    "Status: High Risk Detected\n"
                     f"AI Insight: {crisis_note}\n\n"
-                    f"Please contact them immediately."
+                    "Please contact them immediately."
                 )
             )
 
