@@ -50,3 +50,5 @@ app.conf.update(
 @app.task(bind=True)
 def debug_task(self):
     print(f"[CELERY DEBUG TASK] Request: {self.request!r}")
+
+    

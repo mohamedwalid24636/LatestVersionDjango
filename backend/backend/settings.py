@@ -201,6 +201,7 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '') 
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '') 
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Neurea Support <neureasupport@gmail.com>')
+RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')

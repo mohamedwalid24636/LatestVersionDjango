@@ -18,32 +18,43 @@ logger = logging.getLogger(__name__)
     retry_kwargs={'max_retries': 3}
 )
 def send_async_email(self, subject, message, recipient_list):
+    import requests
     try:
-        print("📧 EMAIL TASK STARTED:", recipient_list)
+        print("📧 EMAIL TASK STARTED (via Resend):", recipient_list)
 
-        # ⚠️ مهم: استخدم EMAIL_HOST_USER بدل DEFAULT_FROM_EMAIL
-        sender = settings.EMAIL_HOST_USER
+        # Use DEFAULT_FROM_EMAIL or EMAIL_HOST_USER as fallback
+        sender = getattr(settings, 'DEFAULT_FROM_EMAIL', getattr(settings, 'EMAIL_HOST_USER', ''))
+        api_key = getattr(settings, 'RESEND_API_KEY', '')
 
+        if not api_key:
+            raise ValueError("RESEND_API_KEY is not set in environment or settings")
+            
         if not sender:
-            raise ValueError("EMAIL_HOST_USER is not set")
+            raise ValueError("Sender email is not set in settings")
 
         if not recipient_list:
             raise ValueError("No recipients provided")
 
-        result = send_mail(
-            subject,
-            message,
-            sender,
-            recipient_list,
-            fail_silently=False,
-        )
+        payload = {
+            "from": sender,
+            "to": recipient_list,
+            "subject": subject,
+            "text": message
+        }
 
-        print("📧 EMAIL SENT RESULT:", result)
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
 
-        if result == 0:
-            raise Exception("Email was not sent (send_mail returned 0)")
+        print("🚀 Sending via Resend API...")
+        response = requests.post("https://api.resend.com/emails", json=payload, headers=headers, timeout=10)
+        
+        # Raise an exception if HTTP status code is 4xx or 5xx
+        response.raise_for_status()
 
-        return result
+        print("✅ EMAIL SENT RESULT:", response.json())
+        return response.json()
 
     except Exception as e:
         print("❌ EMAIL TASK FAILED:", repr(e))
