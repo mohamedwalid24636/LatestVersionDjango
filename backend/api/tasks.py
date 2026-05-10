@@ -7,7 +7,7 @@ from twilio.rest import Client as TwilioClient
 logger = logging.getLogger(__name__)
 
 # ======================================================================
-# 📧 EMAIL TASK (RESEND API + CELERY)
+# 📧 EMAIL TASK (FORCED ADMIN EMAIL ONLY)
 # ======================================================================
 
 @shared_task(
@@ -16,12 +16,9 @@ logger = logging.getLogger(__name__)
     retry_backoff=True,
     retry_kwargs={'max_retries': 3}
 )
-def send_async_email(self, subject, message, recipient_list):
+def send_async_email(self, subject, message, recipient_list=None):
     try:
-        print("📧 EMAIL TASK STARTED (RESEND):", recipient_list)
-
-        if not recipient_list:
-            raise ValueError("❌ recipient_list is empty")
+        print("📧 EMAIL TASK STARTED (ADMIN ONLY)")
 
         url = "https://api.resend.com/emails"
 
@@ -30,22 +27,20 @@ def send_async_email(self, subject, message, recipient_list):
             "Content-Type": "application/json",
         }
 
-        # Resend expects single email per request → loop
-        for email in recipient_list:
+        # 🔥 FORCE SINGLE ADMIN EMAIL ONLY
+        payload = {
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": ["neureahelp@gmail.com"],
+            "subject": subject,
+            "text": message,
+        }
 
-            payload = {
-                "from": settings.DEFAULT_FROM_EMAIL,
-                "to": [email],
-                "subject": subject,
-                "text": message,
-            }
+        response = requests.post(url, json=payload, headers=headers)
 
-            response = requests.post(url, json=payload, headers=headers)
+        if response.status_code not in [200, 201]:
+            raise Exception(f"Resend Error: {response.text}")
 
-            if response.status_code not in [200, 201]:
-                raise Exception(f"Resend Error: {response.text}")
-
-        print("✅ EMAIL SENT SUCCESSFULLY (RESEND)")
+        print("✅ EMAIL SENT TO ADMIN ONLY")
         return "success"
 
     except Exception as e:
@@ -55,7 +50,7 @@ def send_async_email(self, subject, message, recipient_list):
 
 
 # ======================================================================
-# 🚨 EMERGENCY WHATSAPP TASK (UNCHANGED - TWILIO)
+# 🚨 EMERGENCY WHATSAPP TASK (UNCHANGED)
 # ======================================================================
 
 @shared_task(bind=True, max_retries=5)
