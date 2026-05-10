@@ -50,6 +50,10 @@ def send_async_email(self, subject, message, recipient_list):
         print("🚀 Sending via Resend API...")
         response = requests.post("https://api.resend.com/emails", json=payload, headers=headers, timeout=10)
         
+        # ⚠️ اطبع الخطأ التفصيلي من Resend قبل عمل raise لتتمكن من رؤيته في سجلات Railway
+        if not response.ok:
+            print("❌ RESEND API ERROR DETAILS:", response.text)
+            
         # Raise an exception if HTTP status code is 4xx or 5xx
         response.raise_for_status()
 
