@@ -30,7 +30,7 @@ def send_async_email(self, subject, message, recipient_list=None):
         # 🔥 FORCE SINGLE ADMIN EMAIL ONLY
         payload = {
             "from": settings.DEFAULT_FROM_EMAIL,
-            "to": ["neureahelp@gmail.com"],
+            "to": ["mewalid24636@gmail.com"],
             "subject": subject,
             "text": message,
         }
