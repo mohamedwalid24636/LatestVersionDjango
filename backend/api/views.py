@@ -42,6 +42,7 @@ from .serializers import (
     PatientSurveySerializer,
     NotificationSerializer,
     ExploreItemSerializer,
+    ChangePasswordSerializer,
 )
 from .models import (
     PasswordResetCode, 
@@ -271,6 +272,18 @@ class ResetPasswordView(APIView):
             return Response({'message': 'Password reset successfully.'}, status=200)
         except User.DoesNotExist:
             return Response({'error': 'User not found.'}, status=404)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = request.user
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response({'message': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]

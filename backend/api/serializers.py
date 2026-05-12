@@ -501,3 +501,28 @@ class NotificationSerializer(serializers.ModelSerializer):
         if minutes > 0:
             return f"{minutes}m ago"
         return "Just now"
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True, min_length=8)
+    confirm_password = serializers.CharField(required=True, write_only=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Old password is not correct.")
+        return value
+        
+    def validate(self, data):
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+        old_password = data.get('old_password')
+
+        if new_password != confirm_password:
+            raise serializers.ValidationError({"confirm_password": "New passwords do not match."})
+            
+        if old_password == new_password:
+            raise serializers.ValidationError({"new_password": "New password cannot be the same as the old password."})
+            
+        return data
