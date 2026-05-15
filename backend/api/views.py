@@ -75,29 +75,24 @@ class UserHomeViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=['post'])
     def submit_mood(self, request):
-        
         mood_type = request.data.get("mood")
         note = request.data.get("note", "")
 
         if not mood_type:
             return Response({"error": "Mood is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        today = timezone.now().date()
-
-        mood, created = MoodLog.objects.update_or_create(
+        mood = MoodLog.objects.create(
             user=request.user,
-            created_at__date=today,
-            defaults={
-                "mood_type": mood_type,
-                "note": note
-            }
+            mood_type=mood_type,
+            note=note
         )
 
         return Response({
-            "status": "success",
-            "message": "Mood updated successfully!" if not created else "Mood saved successfully!",
-            "data": MoodLogSerializer(mood).data
-        }, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
+            "message": "Mood logged successfully.",
+            "mood_type": mood.mood_type,
+            "mood_value": mood.mood_value,
+            "created_at": mood.created_at
+        }, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'])
     def mood_history(self, request):

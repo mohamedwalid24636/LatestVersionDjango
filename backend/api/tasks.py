@@ -84,7 +84,7 @@ def send_emergency_whatsapp_task(self, user_id, crisis_note):
             phone = str(contact.phone).strip().replace(" ", "")
 
             if not phone.startswith("+"):
-                phone = "+" + phone
+                phone = "+2" + phone
 
             print("📱 Sending WhatsApp to:", phone)
 
