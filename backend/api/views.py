@@ -418,9 +418,20 @@ class BookingViewSet(viewsets.GenericViewSet):
                     f"{request.user.get_full_name()} to Dr. {therapist_profile.user.get_full_name()}"
                 )
             )
-            AlertTime.objects.create(alert=new_alert)
+            AlertTime.objects.create(alert=new_alert)                             #Mohamed Walid
+
+            # تنبيه جديد للدكتور
+            therapist_alert = Alert.objects.create(
+                user=therapist_profile.user,
+                type='appointment',
+                message=(
+                    f"New session booked by {request.user.get_full_name()}."
+                )
+            )
+            AlertTime.objects.create(alert=therapist_alert)
+
         except Exception as alert_error:
-            print(f"Error creating payment alert: {alert_error}")
+            print(f"Error creating Payment alerts: {alert_error}")
 
            
         already_patient = PatientTherapist.objects.filter(

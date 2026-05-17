@@ -1,0 +1,456 @@
+{
+  "info": {
+    "name": "Neurea Backend API",
+    "description": "Postman collection for the Neurea Django REST API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "your_jwt_bearer_token_here",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"password2\": \"SecurePass123!\",\n  \"gender\": \"Male\",\n  \"mobile_phone\": \"+1234567890\",\n  \"emergency_contact_phone\": \"+0987654321\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register/",
+              "host": ["{{base_url}}"],
+              "path": ["register", ""]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login/",
+              "host": ["{{base_url}}"],
+              "path": ["login", ""]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/forgot-password/",
+              "host": ["{{base_url}}"],
+              "path": ["forgot-password", ""]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"123456\",\n  \"new_password\": \"NewSecurePass123!\",\n  \"confirm_password\": \"NewSecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reset-password/",
+              "host": ["{{base_url}}"],
+              "path": ["reset-password", ""]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"SecurePass123!\",\n  \"new_password\": \"AnotherSecurePass123!\",\n  \"confirm_password\": \"AnotherSecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/change-password/",
+              "host": ["{{base_url}}"],
+              "path": ["change-password", ""]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/logout/",
+              "host": ["{{base_url}}"],
+              "path": ["logout", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Profile",
+      "item": [
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me/",
+              "host": ["{{base_url}}"],
+              "path": ["me", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/profile/update/",
+              "host": ["{{base_url}}"],
+              "path": ["profile", "update", ""]
+            }
+          }
+        },
+        {
+          "name": "Onboarding Survey",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question_1\": \"Answer 1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/onboarding-survey/",
+              "host": ["{{base_url}}"],
+              "path": ["onboarding-survey", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard & Mood",
+      "item": [
+        {
+          "name": "User Home Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/home/get_dashboard/",
+              "host": ["{{base_url}}"],
+              "path": ["home", "get_dashboard", ""]
+            }
+          }
+        },
+        {
+          "name": "Submit Mood",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mood\": \"Happy\",\n  \"note\": \"Feeling great today!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/home/submit_mood/",
+              "host": ["{{base_url}}"],
+              "path": ["home", "submit_mood", ""]
+            }
+          }
+        },
+        {
+          "name": "Mood History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/home/mood_history/",
+              "host": ["{{base_url}}"],
+              "path": ["home", "mood_history", ""]
+            }
+          }
+        },
+        {
+          "name": "Mood Dashboard Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/mood-dashboard/",
+              "host": ["{{base_url}}"],
+              "path": ["mood-dashboard", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Therapists & Appointments",
+      "item": [
+        {
+          "name": "List Therapists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/therapists/",
+              "host": ["{{base_url}}"],
+              "path": ["therapists", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Therapist Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/therapists/1/",
+              "host": ["{{base_url}}"],
+              "path": ["therapists", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "List Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings/",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", ""]
+            }
+          }
+        },
+        {
+          "name": "List Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/appointments/",
+              "host": ["{{base_url}}"],
+              "path": ["appointments", ""]
+            }
+          }
+        },
+        {
+          "name": "Patient Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/",
+              "host": ["{{base_url}}"],
+              "path": ["sessions", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Features",
+      "item": [
+        {
+          "name": "Medicines (GET)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/medicines/",
+              "host": ["{{base_url}}"],
+              "path": ["medicines", ""]
+            }
+          }
+        },
+        {
+          "name": "Favorites (GET)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/favorites/",
+              "host": ["{{base_url}}"],
+              "path": ["favorites", ""]
+            }
+          }
+        },
+        {
+          "name": "Chatbot",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"I am feeling anxious\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chatbot/",
+              "host": ["{{base_url}}"],
+              "path": ["chatbot", ""]
+            }
+          }
+        },
+        {
+          "name": "Explore Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/explore/",
+              "host": ["{{base_url}}"],
+              "path": ["explore", ""]
+            }
+          }
+        },
+        {
+          "name": "Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Support & Help",
+      "item": [
+        {
+          "name": "Create Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"report_type\": 1,\n  \"description\": \"Issue with appointment\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reports/create/",
+              "host": ["{{base_url}}"],
+              "path": ["reports", "create", ""]
+            }
+          }
+        },
+        {
+          "name": "Support Options Metadata",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/account/support-options/",
+              "host": ["{{base_url}}"],
+              "path": ["account", "support-options", ""]
+            }
+          }
+        },
+        {
+          "name": "FAQ List",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/help/faq/",
+              "host": ["{{base_url}}"],
+              "path": ["help", "faq", ""]
+            }
+          }
+        },
+        {
+          "name": "Contact Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Need help with account\",\n  \"message\": \"My profile is not updating.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/help/contact/",
+              "host": ["{{base_url}}"],
+              "path": ["help", "contact", ""]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
