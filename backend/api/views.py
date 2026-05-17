@@ -313,7 +313,10 @@ class LogoutView(APIView):
 
 
 class TherapistViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = TherapistProfile.objects.select_related('user').all()
+    # queryset = TherapistProfile.objects.select_related('user').all()
+    queryset = TherapistProfile.objects.select_related('user').exclude(
+        specialization="Admin"
+    )
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = {
         'specialization': ['icontains', 'exact'],
